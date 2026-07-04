@@ -1,878 +1,530 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="How Aneena James diagnosed, recovered, and rebuilt a broken WooCommerce store — fixing Elementor instability, navigation, product pages, cart layout, responsiveness, and more across a live Australian e-commerce site." />
-  <title>How I Rescued & Rebuilt a Broken WooCommerce Store — Aneena James</title>
-  <link rel="icon" type="image/png" href="../../assets/favicon.png" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="How Aneena James diagnosed, recovered, and rebuilt a broken WooCommerce store — fixing Elementor instability, navigation, product pages, cart layout, responsiveness, and more across a live Australian e-commerce site." />
+<title>How I Rescued & Rebuilt a Broken WooCommerce Store — Aneena James</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500;1,9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --white:#FFFFFF; --paper:#FDFCFA; --ink:#1A1A1D; --ink-soft:#6E6C68; --ink-faint:#A6A39C; --line:#EAE6E0;
+  --red:#E8827A; --red-deep:#C6564B; --red-tint:#FBE7E3; --red-tint-2:#F6D6D0;
+  --blue:#7DB2DD; --blue-deep:#3D7FB5; --blue-tint:#E3F0FA; --blue-tint-2:#CFE6F5;
+  --font-display:'Fraunces',Georgia,serif; --font-body:'Inter',system-ui,-apple-system,sans-serif;
+  --r-sm:8px; --r-md:16px; --r-lg:26px;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--white);color:var(--ink);font-family:var(--font-body);line-height:1.6;font-size:16px;-webkit-font-smoothing:antialiased}
+img{max-width:100%;display:block}
+a{color:inherit;text-decoration:none}
+h1,h2,h3,h4{font-family:var(--font-display);font-weight:500;line-height:1.08;margin:0}
+p{margin:0 0 20px}
+em{font-style:italic;color:var(--red-deep)}
+.container{max-width:1160px;margin:0 auto;padding:0 32px}
 
-  <style>
-    /* ── TOKENS ─────────────────────────────────────────── */
-    :root {
-      --cream:          #FAF8F3;
-      --off-white:      #F5F2EA;
-      --white:          #ffffff;
-      --lavender-light: #EDE9F8;
-      --lavender:       #D5CCEF;
-      --lavender-dark:  #9B8FCB;
-      --sage-light:     #E5F0E7;
-      --sage:           #C8DFCC;
-      --sage-dark:      #6FA378;
-      --sky-light:      #E4F1FA;
-      --sky-dark:       #5A9EC5;
-      --peach-light:    #FBE9E2;
-      --peach-dark:     #D4845E;
-      --butter-light:   #F5E9C0;
-      --butter-dark:    #C49A2B;
-      --ink:            #1C1A2E;
-      --ink-soft:       #3D3A52;
-      --ink-muted:      #6B677F;
-      --ink-faint:      #A8A5B8;
-      --font-display:   'Playfair Display', Georgia, serif;
-      --font-body:      'DM Sans', sans-serif;
-      --nav-h:          72px;
-      --col:            680px;   /* max readable line width */
-      --radius:         20px;
-      --radius-pill:    100px;
-    }
+.nav{position:sticky;top:0;z-index:60;background:rgba(255,255,255,.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;height:76px}
+.nav-logo{font-family:var(--font-display);font-size:20px;font-weight:600;letter-spacing:-.01em}
+.nav-logo span{color:var(--red-deep)}
+.nav-links{display:flex;align-items:center;gap:34px}
+.nav-links a{font-size:14.5px;font-weight:500;color:var(--ink-soft);transition:color .2s}
+.nav-links a:hover{color:var(--ink)}
+.nav-cta{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:999px;background:var(--ink);color:var(--white);font-size:14px;font-weight:600;transition:transform .2s,background .2s}
+.nav-cta:hover{background:var(--red-deep);transform:translateY(-1px)}
+.burger{display:none;background:none;border:none;cursor:pointer;width:36px;height:36px}
+.burger span{display:block;width:20px;height:1.5px;background:var(--ink);margin:5px auto;transition:.25s}
+.burger.open span:nth-child(1){transform:translateY(6.5px) rotate(45deg)}
+.burger.open span:nth-child(2){opacity:0}
+.burger.open span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg)}
 
-    /* ── RESET ──────────────────────────────────────────── */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html  { scroll-behavior: smooth; }
-    body  {
-      font-family: var(--font-body);
-      background: var(--cream);
-      color: var(--ink);
-      overflow-x: hidden;
-      cursor: none;
-      /* smoother rendering */
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-    }
-    img { display: block; max-width: 100%; }
-    a   { text-decoration: none; color: inherit; }
+.eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:var(--ink-faint)}
+.eyebrow.red{color:var(--red-deep)}
+.eyebrow-line{display:flex;align-items:center;gap:12px;font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:14px}
+.eyebrow-line::after{content:"";flex:0 0 36px;height:1px;background:var(--line)}
 
-    /* ── CURSOR ─────────────────────────────────────────── */
-    .cursor      { width:11px;height:11px;background:var(--lavender-dark);border-radius:50%;position:fixed;top:0;left:0;pointer-events:none;z-index:9999;mix-blend-mode:multiply; }
-    .cursor-ring { width:34px;height:34px;border:1.5px solid var(--lavender-dark);border-radius:50%;position:fixed;top:0;left:0;pointer-events:none;z-index:9998;opacity:.4; }
-    @media (hover:none){ .cursor,.cursor-ring{display:none} body{cursor:auto} }
+.cs-hero{padding:44px 0 40px}
+.cs-back{font-size:13.5px;font-weight:600;color:var(--ink-soft);display:inline-flex;gap:6px;align-items:center;margin-bottom:26px}
+.cs-back:hover{color:var(--red-deep)}
+.cs-hero h1{font-size:clamp(32px,5vw,54px);letter-spacing:-.02em;max-width:20ch;margin-top:14px}
+.cs-sub{color:var(--ink-soft);font-size:16.5px;margin-top:18px;max-width:62ch;line-height:1.8}
+.meta-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:30px}
+.meta-pill{display:inline-flex;align-items:center;gap:7px;background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:8px 16px;font-size:12.5px;color:var(--ink-soft)}
+.meta-pill strong{color:var(--ink);font-weight:600}
 
-    /* ── NAV ────────────────────────────────────────────── */
-    .nav {
-      position:fixed;top:0;left:0;right:0;height:var(--nav-h);
-      z-index:200;display:flex;align-items:center;justify-content:space-between;
-      padding:0 52px;
-      background:rgba(250,248,243,.93);
-      backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
-      border-bottom:1px solid rgba(180,170,200,.16);
-      transition:box-shadow .3s;
-    }
-    .nav.scrolled { box-shadow:0 2px 24px rgba(28,26,46,.06); }
-    .nav-logo { font-family:var(--font-display);font-size:19px;font-weight:400;color:var(--ink);cursor:none; }
-    .nav-logo em { font-style:italic;color:var(--lavender-dark); }
-    .nav-links { display:flex;align-items:center;gap:34px; }
-    .nav-links a { font-size:13px;font-weight:400;letter-spacing:.04em;color:var(--ink-muted);cursor:none;position:relative;transition:color .2s; }
-    .nav-links a::after { content:'';position:absolute;bottom:-3px;left:0;right:0;height:1px;background:var(--lavender-dark);transform:scaleX(0);transform-origin:left;transition:transform .25s; }
-    .nav-links a:hover { color:var(--ink); }
-    .nav-links a:hover::after { transform:scaleX(1); }
-    .nav-resume { font-size:12px;font-weight:500;letter-spacing:.08em;padding:8px 20px;border:1.5px solid var(--lavender-dark);border-radius:var(--radius-pill);color:var(--lavender-dark);cursor:none;transition:all .22s; }
-    .nav-resume:hover { background:var(--lavender-dark);color:var(--white); }
-    .nav-burger { display:none;flex-direction:column;gap:5px;cursor:pointer;padding:4px;background:none;border:none; }
-    .nav-burger span { display:block;width:22px;height:1.5px;background:var(--ink);transition:all .25s; }
-    .nav-burger.open span:nth-child(1){ transform:translateY(6.5px) rotate(45deg); }
-    .nav-burger.open span:nth-child(2){ opacity:0; }
-    .nav-burger.open span:nth-child(3){ transform:translateY(-6.5px) rotate(-45deg); }
-    .nav-mobile { display:none;position:fixed;top:var(--nav-h);left:0;right:0;background:rgba(250,248,243,.97);backdrop-filter:blur(18px);padding:28px 52px 36px;flex-direction:column;gap:20px;border-bottom:1px solid rgba(180,170,200,.18);z-index:199;animation:slideDown .3s ease; }
-    .nav-mobile.open { display:flex; }
-    .nav-mobile a { font-size:18px;color:var(--ink-muted);font-family:var(--font-display);cursor:none; }
-    .nav-mobile a:hover { color:var(--ink); }
-    @keyframes slideDown { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+.cs-media{border-radius:var(--r-lg);overflow:hidden;background:var(--blue-tint);height:380px}
+.cs-media img{width:100%;height:100%;object-fit:cover}
 
-    /* ── REVEAL ─────────────────────────────────────────── */
-    .reveal { opacity:0;transform:translateY(22px);transition:opacity .65s ease,transform .65s ease; }
-    .reveal.in { opacity:1;transform:none; }
+.cs-body{padding-top:20px}
+.cs-body h2{font-size:24px;margin:0 0 16px;letter-spacing:-.01em}
+.cs-body p{color:var(--ink-soft);font-size:15.5px;line-height:1.8}
+.cs-body p strong{color:var(--ink);font-weight:700}
+.cs-divider{width:100%;height:1px;background:var(--line);margin:56px 0}
+.cs-list{list-style:none;margin:16px 0 22px;padding:0;display:flex;flex-direction:column;gap:11px}
+.cs-list li{display:flex;align-items:flex-start;gap:13px;font-size:15.5px;line-height:1.7;color:var(--ink-soft)}
+.cs-list li::before{content:"";display:block;width:6px;height:6px;border-radius:50%;background:var(--red);flex-shrink:0;margin-top:8px}
 
-    /* ── PAGE WRAPPER ───────────────────────────────────── */
-    .page-wrap {
-      padding-top: calc(var(--nav-h) + 48px);
-      padding-bottom: 120px;
-    }
+.ba-pair{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:30px 0}
+.ba-card{border-radius:var(--r-md);overflow:hidden;border:1px solid var(--line)}
+.ba-label{padding:10px 16px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;display:flex;align-items:center;gap:8px}
+.ba-before .ba-label{background:var(--red-tint);color:var(--red-deep)}
+.ba-after .ba-label{background:var(--blue-tint);color:var(--blue-deep)}
+.ba-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.ba-before .ba-dot{background:var(--red-deep)}
+.ba-after .ba-dot{background:var(--blue-deep)}
+.ba-img{background:var(--paper);min-height:170px}
+.ba-img img{width:100%;display:block;object-fit:cover}
 
-    /* ── CENTERED COLUMN ────────────────────────────────── */
-    .col {
-      max-width: var(--col);
-      margin: 0 auto;
-      padding: 0 40px;
-    }
-    /* Full-bleed within centred section */
-    .bleed {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 0 40px;
-    }
+.tools-wrap{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+.tool-chip{display:inline-flex;align-items:center;gap:8px;background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:9px 18px;font-size:13.5px;color:var(--ink-soft);transition:all .2s}
+.tool-chip:hover{background:var(--blue-tint);border-color:transparent}
 
-    /* ── BACK LINK ──────────────────────────────────────── */
-    .back-link {
-      display:inline-flex;align-items:center;gap:8px;
-      font-size:13px;font-weight:500;letter-spacing:.04em;
-      color:var(--ink-muted);cursor:none;
-      transition:color .2s,gap .2s;
-      margin-bottom: 52px;
-    }
-    .back-link:hover { color:var(--lavender-dark);gap:12px; }
-    .back-arrow { display:inline-block;transition:transform .2s; }
-    .back-link:hover .back-arrow { transform:translateX(-3px); }
+.results-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:22px}
+.result-item{display:flex;align-items:flex-start;gap:11px;background:var(--paper);border:1px solid var(--line);border-radius:var(--r-sm);padding:13px 15px;transition:all .2s}
+.result-item:hover{background:var(--blue-tint);border-color:transparent}
+.result-check{color:var(--red-deep);font-size:14px;flex-shrink:0;margin-top:1px}
+.result-text{font-size:14px;line-height:1.5;color:var(--ink-soft)}
 
-    /* ── HERO ───────────────────────────────────────────── */
-    .cs-tag {
-      display:inline-flex;align-items:center;gap:8px;
-      background:var(--lavender-light);border:1px solid var(--lavender);
-      color:var(--lavender-dark);
-      font-size:11px;font-weight:500;letter-spacing:.12em;
-      padding:6px 16px;border-radius:var(--radius-pill);
-      margin-bottom:24px;
-    }
-    .cs-h1 {
-      font-family:var(--font-display);
-      font-size: clamp(32px, 4.5vw, 52px);
-      font-weight:400;line-height:1.1;letter-spacing:-.02em;
-      color:var(--ink);margin-bottom:24px;
-    }
-    .cs-h1 em { font-style:italic;color:var(--lavender-dark); }
-    .cs-lede {
-      font-size:18px;line-height:1.78;
-      color:var(--ink-muted);font-weight:300;
-      margin-bottom:40px;
-    }
+.callout{background:var(--red-tint);border-left:3px solid var(--red-deep);border-radius:0 var(--r-md) var(--r-md) 0;padding:24px 28px;margin:28px 0}
+.callout p{font-size:15.5px;line-height:1.8;color:var(--ink-soft);font-style:italic;margin:0}
+.callout p strong{font-style:normal;font-weight:700;color:var(--ink)}
 
-    /* META PILLS */
-    .meta-row {
-      display:flex;flex-wrap:wrap;gap:10px;
-      margin-bottom:56px;
-    }
-    .meta-pill {
-      display:inline-flex;align-items:center;gap:7px;
-      background:var(--white);border:1px solid rgba(28,26,46,.09);
-      border-radius:var(--radius-pill);
-      padding:7px 16px;
-      font-size:12px;color:var(--ink-muted);
-    }
-    .meta-pill strong { color:var(--ink);font-weight:500; }
+.btn{display:inline-flex;align-items:center;gap:8px;padding:13px 26px;border-radius:999px;font-size:14.5px;font-weight:600;border:1.5px solid transparent;cursor:pointer;font-family:var(--font-body);transition:transform .2s ease,background .2s ease,color .2s ease,border-color .2s}
+.hero-cta{display:flex;gap:12px;flex-wrap:wrap}
 
-    /* ── COVER IMAGE ────────────────────────────────────── */
-    .cover-wrap {
-      margin-bottom: 80px;
-    }
-    .cover-img {
-      width:100%;border-radius:var(--radius);overflow:hidden;
-      background:var(--lavender-light);
-    }
-    .cover-img img { width:100%;display:block; }
+.cta-dark{background:var(--ink);border-radius:var(--r-lg);padding:60px 44px;text-align:center;position:relative;overflow:hidden;margin-top:70px}
+.cta-dark .eyebrow-line{color:var(--red);justify-content:center}
+.cta-dark .eyebrow-line::after{display:none}
+.cta-dark h2{font-size:clamp(26px,3.6vw,40px);color:var(--white);margin-top:14px}
+.cta-dark p{font-size:15px;color:rgba(255,255,255,.55);max-width:42ch;margin:14px auto 30px}
+.cta-dark .hero-cta{justify-content:center}
+.btn-light{background:var(--white);color:var(--ink)}
+.btn-light:hover{background:var(--red-tint);color:var(--red-deep)}
+.btn-line{background:transparent;color:rgba(255,255,255,.75);border:1.5px solid rgba(255,255,255,.25)}
+.btn-line:hover{border-color:rgba(255,255,255,.6);color:var(--white)}
 
-    /* ── SECTION RHYTHM ─────────────────────────────────── */
-    .cs-section { margin-bottom: 72px; }
+.footer{padding:36px 0;text-align:center;color:var(--ink-faint);font-size:13.5px;border-top:1px solid var(--line)}
 
-    .eyebrow {
-      font-size:10px;font-weight:500;letter-spacing:.2em;
-      color:var(--ink-faint);
-      display:flex;align-items:center;gap:12px;
-      margin-bottom:16px;
-    }
-    .eyebrow::after { content:'';width:36px;height:1px;background:var(--ink-faint);flex-shrink:0; }
+.reveal{opacity:0;transform:translateY(20px);transition:opacity .7s ease,transform .7s ease}
+.reveal.visible{opacity:1;transform:none}
 
-    /* ── HEADINGS ───────────────────────────────────────── */
-    .cs-h2 {
-      font-family:var(--font-display);
-      font-size: clamp(24px, 3vw, 34px);
-      font-weight:400;line-height:1.18;letter-spacing:-.015em;
-      color:var(--ink);margin-bottom:20px;
-    }
-    .cs-h2 em { font-style:italic;color:var(--lavender-dark); }
-
-    /* ── BODY TEXT — optimised for reading ─────────────── */
-    .cs-p {
-      font-size: 16.5px;   /* slightly larger than UI text */
-      line-height: 1.85;   /* generous leading */
-      color: var(--ink-soft);  /* softer than pure ink — easier on eyes */
-      font-weight: 300;
-      letter-spacing: .01em;
-      margin-bottom: 20px;
-    }
-    .cs-p:last-child { margin-bottom:0; }
-    .cs-p strong { font-weight:500;color:var(--ink); }
-
-    /* ── LISTS ──────────────────────────────────────────── */
-    .cs-list {
-      list-style:none;
-      margin:16px 0 24px;
-      display:flex;flex-direction:column;gap:12px;
-    }
-    .cs-list li {
-      display:flex;align-items:flex-start;gap:14px;
-      font-size:16px;line-height:1.72;
-      color:var(--ink-soft);font-weight:300;
-      letter-spacing:.01em;
-    }
-    .cs-list li::before {
-      content:'';
-      display:block;width:5px;height:5px;border-radius:50%;
-      background:var(--lavender-dark);
-      flex-shrink:0;margin-top:10px;
-    }
-    .cs-list li strong { font-weight:500;color:var(--ink); }
-
-    /* Sub-list (inside list) */
-    .cs-sub-list {
-      list-style:none;
-      margin:10px 0 6px 18px;
-      display:flex;flex-direction:column;gap:8px;
-    }
-    .cs-sub-list li {
-      display:flex;align-items:flex-start;gap:10px;
-      font-size:15px;line-height:1.7;color:var(--ink-muted);font-weight:300;
-    }
-    .cs-sub-list li::before {
-      content:'–';color:var(--lavender-dark);flex-shrink:0;font-weight:500;
-    }
-
-    /* ── DIVIDER ────────────────────────────────────────── */
-    .divider {
-      width:100%;height:1px;
-      background:rgba(28,26,46,.07);
-      margin:64px 0;
-    }
-
-    /* ── BEFORE / AFTER ─────────────────────────────────── */
-    .ba-pair {
-      display:grid;grid-template-columns:1fr 1fr;
-      gap:14px;margin:32px 0;
-    }
-    .ba-card { border-radius:var(--radius);overflow:hidden; }
-    .ba-label {
-      padding:9px 16px;font-size:10px;font-weight:500;letter-spacing:.12em;
-      display:flex;align-items:center;gap:7px;
-    }
-    .ba-before .ba-label { background:var(--peach-light);color:var(--peach-dark); }
-    .ba-after  .ba-label { background:var(--sage-light); color:var(--sage-dark);  }
-    .ba-dot { width:5px;height:5px;border-radius:50%;flex-shrink:0; }
-    .ba-before .ba-dot { background:var(--peach-dark); }
-    .ba-after  .ba-dot { background:var(--sage-dark); }
-    .ba-img {
-      background:var(--off-white);
-      overflow:hidden;
-    }
-    .ba-img img { width:100%;display:block;object-fit:cover; }
-    /* placeholder caption — only shown when no img child */
-    .ba-img:not(:has(img))::after {
-      content: attr(data-label);
-      display:flex;align-items:center;justify-content:center;
-      min-height:180px;
-      font-size:11px;letter-spacing:.08em;color:var(--ink-faint);
-      border:1.5px dashed rgba(28,26,46,.1);
-      padding:20px;
-      text-align:center;
-    }
-
-    /* Single image (full width) */
-    .cs-img {
-      margin:28px 0;
-      border-radius:var(--radius);overflow:hidden;
-      border:1px solid rgba(28,26,46,.06);
-    }
-    .cs-img img { width:100%;display:block; }
-    .cs-img-caption {
-      font-size:11px;color:var(--ink-faint);letter-spacing:.05em;
-      text-align:center;margin-top:10px;
-    }
-
-    /* ── TOOLS ──────────────────────────────────────────── */
-    .tools-wrap { display:flex;flex-wrap:wrap;gap:10px;margin-top:20px; }
-    .tool {
-      display:inline-flex;align-items:center;gap:8px;
-      background:var(--white);border:1px solid rgba(28,26,46,.09);
-      border-radius:var(--radius-pill);
-      padding:9px 18px;font-size:13px;color:var(--ink-soft);
-      transition:all .2s;
-    }
-    .tool:hover { background:var(--lavender-light);border-color:var(--lavender);transform:translateY(-2px); }
-
-    /* ── RESULTS ────────────────────────────────────────── */
-    .results-grid {
-      display:grid;grid-template-columns:1fr 1fr;
-      gap:10px;margin-top:24px;
-    }
-    .result {
-      display:flex;align-items:flex-start;gap:12px;
-      background:var(--white);border:1px solid rgba(28,26,46,.07);
-      border-radius:14px;padding:14px 16px;
-      transition:all .22s;
-    }
-    .result:hover { background:var(--sage-light);border-color:var(--sage);transform:translateY(-2px); }
-    .result-check { color:var(--sage-dark);font-size:15px;flex-shrink:0;margin-top:1px; }
-    .result-text { font-size:14px;line-height:1.55;color:var(--ink-soft);font-weight:400; }
-
-    /* ── CALLOUT (highlighted quote) ───────────────────── */
-    .callout {
-      background:var(--lavender-light);
-      border-left:3px solid var(--lavender-dark);
-      border-radius:0 14px 14px 0;
-      padding:22px 26px;margin:28px 0;
-    }
-    .callout p {
-      font-size:16px;line-height:1.82;
-      color:var(--ink-soft);font-weight:300;font-style:italic;
-      letter-spacing:.01em;
-    }
-    .callout p strong { font-style:normal;font-weight:500;color:var(--ink); }
-
-    /* ── CTA BLOCK ──────────────────────────────────────── */
-    .cta-block {
-      background:var(--ink);border-radius:var(--radius);
-      padding:56px 52px;text-align:center;
-      position:relative;overflow:hidden;
-      margin-top:80px;
-    }
-    .cta-deco {
-      position:absolute;font-family:var(--font-display);
-      font-size:140px;color:rgba(255,255,255,.04);
-      line-height:1;pointer-events:none;user-select:none;
-    }
-    .cta-deco-tl { top:-16px;left:-8px; }
-    .cta-deco-br { bottom:-28px;right:-8px;font-size:110px; }
-    .cta-eyebrow { font-size:10px;letter-spacing:.18em;color:var(--lavender);margin-bottom:14px;position:relative;z-index:1; }
-    .cta-h2 {
-      font-family:var(--font-display);
-      font-size:clamp(24px,3.5vw,38px);
-      font-weight:400;color:var(--white);line-height:1.15;
-      margin-bottom:12px;position:relative;z-index:1;
-    }
-    .cta-h2 em { font-style:italic;color:var(--lavender); }
-    .cta-sub {
-      font-size:15px;color:rgba(255,255,255,.48);font-weight:300;
-      line-height:1.72;max-width:380px;margin:0 auto 34px;
-      position:relative;z-index:1;
-    }
-    .cta-btns { display:flex;gap:12px;justify-content:center;flex-wrap:wrap;position:relative;z-index:1; }
-    .btn-primary {
-      display:inline-flex;align-items:center;gap:8px;
-      background:var(--white);color:var(--ink);
-      font-family:var(--font-body);font-size:14px;font-weight:500;letter-spacing:.03em;
-      padding:13px 28px;border-radius:var(--radius-pill);
-      border:none;cursor:none;transition:all .2s;
-    }
-    .btn-primary:hover { background:var(--lavender-light);transform:translateY(-2px); }
-    .btn-ghost {
-      display:inline-flex;align-items:center;gap:8px;
-      background:transparent;color:rgba(255,255,255,.65);
-      font-family:var(--font-body);font-size:14px;font-weight:400;letter-spacing:.03em;
-      padding:13px 28px;border-radius:var(--radius-pill);
-      border:1.5px solid rgba(255,255,255,.18);cursor:none;transition:all .2s;
-    }
-    .btn-ghost:hover { border-color:rgba(255,255,255,.45);color:var(--white);transform:translateY(-2px); }
-
-    /* ── FOOTER ─────────────────────────────────────────── */
-    .footer {
-      border-top:1px solid rgba(28,26,46,.08);
-      padding:30px 52px;
-      display:flex;justify-content:space-between;align-items:center;
-      font-size:12px;color:var(--ink-faint);
-      background:var(--cream);flex-wrap:wrap;gap:10px;
-    }
-    .footer-links { display:flex;gap:20px; }
-    .footer-links a { color:var(--ink-faint);transition:color .2s;cursor:none;font-size:12px; }
-    .footer-links a:hover { color:var(--lavender-dark); }
-
-    /* ── RESPONSIVE ─────────────────────────────────────── */
-    @media(max-width:900px){
-      .nav { padding:0 28px; }
-      .nav-links,.nav-resume { display:none; }
-      .nav-burger { display:flex; }
-      .nav-mobile { padding:28px 28px 36px; }
-      .col,.bleed { padding-left:24px;padding-right:24px; }
-      .ba-pair { grid-template-columns:1fr; }
-      .results-grid { grid-template-columns:1fr; }
-      .cta-block { padding:44px 28px; }
-      .footer { padding:24px 28px;flex-direction:column;text-align:center; }
-    }
-    @media(max-width:560px){
-      .col,.bleed { padding-left:18px;padding-right:18px; }
-      .cta-btns { flex-direction:column;align-items:center; }
-      .meta-row { gap:7px; }
-      .cs-h1 { font-size:28px; }
-    }
-  </style>
+@media (max-width:860px){
+  .nav-links{position:fixed;top:76px;left:0;right:0;background:var(--white);flex-direction:column;align-items:flex-start;gap:0;padding:8px 0;border-bottom:1px solid var(--line);transform:translateY(-130%);transition:transform .3s ease}
+  .nav-links.open{transform:translateY(0)}
+  .nav-links a{padding:16px 32px;width:100%}
+  .nav-links .nav-cta{margin:12px 32px 16px}
+  .burger{display:block}
+}
+@media (max-width:760px){
+  .ba-pair{grid-template-columns:1fr}
+  .results-grid{grid-template-columns:1fr}
+  .cs-media{height:220px}
+}
+</style>
 </head>
 <body>
 
-  <div class="cursor"></div>
-  <div class="cursor-ring"></div>
-
-  <!-- NAV -->
-  <nav class="nav">
-    <a href="/" class="nav-logo">Aneena <em>James</em></a>
-    <div class="nav-links">
-      <a href="/">Home</a>
-      <a href="https://aneena-james.github.io/#work" class="active">Work</a>
-      <a href="https://aneena-james.github.io/#about">About</a>
-      <a href="https://aneena-james.github.io/#contact">Contact</a>
+<!-- ===== NAV ===== -->
+<nav class="nav">
+  <div class="container nav-inner">
+    <a href="../index.html" class="nav-logo">Aneena <span>James</span></a>
+    <div class="nav-links" id="navLinks">
+      <a href="../index.html#work">Work</a>
+      <a href="../index.html#about">About</a>
+      <a href="../index.html#contact">Contact</a>
+      <a href="../assets/resume.pdf" download class="nav-cta">Resume ↓</a>
     </div>
-    <a href="/assets/resume.pdf" class="nav-resume" download>Resume ↓</a>
-    <button class="nav-burger" aria-label="Open menu">
-      <span></span><span></span><span></span>
-    </button>
-  </nav>
-  <div class="nav-mobile">
-    <a href="/">Home</a>
-     <a href="https://aneena-james.github.io/#work" class="active">Work</a>
-      <a href="https://aneena-james.github.io/#about">About</a>
-      <a href="https://aneena-james.github.io/#contact">Contact</a>
-    <a href="/assets/resume.pdf" download>Resume ↓</a>
+    <button class="burger" id="burger" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- ===== CASE STUDY HERO ===== -->
+<header class="cs-hero">
+  <div class="container">
+    <a href="../index.html#work" class="cs-back reveal">← Back to Work</a>
+    <div class="eyebrow red reveal">WooCommerce · Store Recovery</div>
+    <h1 class="reveal">How I Rescued and Rebuilt a <em>Broken WooCommerce Store</em></h1>
+    <p class="cs-sub reveal">Sometimes, working on a real website turns into an unexpected debugging journey. What initially appeared to be a small design problem quickly turned into a deeper investigation involving layout conflicts, plugin issues, caching problems, and editor instability.</p>
+    <div class="meta-row reveal">
+      <span class="meta-pill">🛍️ <strong>Client:</strong> The Telecom Warehouse, Australia</span>
+      <span class="meta-pill">⚙️ <strong>Stack:</strong> WordPress · WooCommerce · Elementor · SiteGround</span>
+      <span class="meta-pill">🔧 <strong>Type:</strong> Debugging · Recovery · Rebuild</span>
+      <span class="meta-pill">✅ <strong>Status:</strong> Completed</span>
+    </div>
+  </div>
+</header>
+
+<div class="container" style="max-width:900px">
+  <div class="cs-media reveal" style="margin-top:44px">
+    <img src="hero.jpg" alt="The Telecom Warehouse WooCommerce store after recovery" style="width:100%;height:100%;object-fit:cover;border-radius:var(--r-lg)">
+  </div>
+</div>
+
+<!-- ===== BODY ===== -->
+<div class="container cs-body" style="max-width:680px;padding-top:20px;padding-bottom:100px">
+
+  <div class="reveal">
+    <p>Recently, I worked on a WooCommerce store that suddenly started behaving unpredictably after a theme update. The site had multiple layout and functionality issues across different pages.</p>
+    <p>Instead of applying quick temporary fixes, I decided to understand the root cause and stabilize the website properly. What followed became a valuable learning experience in debugging, problem solving, and improving an existing eCommerce website.</p>
   </div>
 
-  <!-- PAGE -->
-  <div class="page-wrap">
+  <div class="cs-divider"></div>
 
-    <!-- BACK + HERO -->
-    <div class="col">
-      <a href="/work.html" class="back-link reveal">
-        <span class="back-arrow">←</span> Back to Work
-      </a>
+  <div class="reveal">
+    <div class="eyebrow-line">The Situation</div>
+    <h2>A routine update that <em>broke everything at once</em></h2>
+    <p>The website was built with <strong>WordPress, WooCommerce, and Elementor</strong>, and hosted on <strong>SiteGround</strong>. After the update, several parts of the website started behaving incorrectly.</p>
+    <p>Some of the issues included:</p>
+    <ul class="cs-list">
+      <li>The Elementor editor getting stuck while loading</li>
+      <li>Navigation menu items and sub-items appearing together incorrectly</li>
+      <li>Header and footer styling breaking</li>
+      <li>Product page layout misalignment</li>
+      <li>Cart page sidebar and cross-sell section appearing incorrectly</li>
+      <li>CSS changes failing to apply properly</li>
+      <li>General layout inconsistencies across the store</li>
+    </ul>
+    <p>While diagnosing plugin conflicts by temporarily disabling plugins, the site even crashed briefly. Fortunately, I was able to recover it quickly and continue the debugging process.</p>
+    <p>This situation made it clear that the problem was not a single issue — it was a combination of layout conflicts, caching problems, and plugin interactions.</p>
+  </div>
 
-      <div class="reveal">
-        <div class="cs-tag">WooCommerce · Store Recovery</div>
-        <h1 class="cs-h1">How I Rescued and Rebuilt a <em>Broken WooCommerce Store</em></h1>
-        <p class="cs-lede">Sometimes, working on a real website turns into an unexpected debugging journey. What initially appeared to be a small design problem quickly turned into a deeper investigation involving layout conflicts, plugin issues, caching problems, and editor instability.</p>
-        <div class="meta-row">
-          <span class="meta-pill">🛍️ <strong>Client:</strong> The Telecom Warehouse, Australia</span>
-          <span class="meta-pill">⚙️ <strong>Stack:</strong> WordPress · WooCommerce · Elementor · SiteGround</span>
-          <span class="meta-pill">🔧 <strong>Type:</strong> Debugging · Recovery · Rebuild</span>
-          <span class="meta-pill">✅ <strong>Status:</strong> Completed</span>
-        </div>
-      </div>
+  <div class="cs-divider"></div>
+
+  <div class="reveal">
+    <div class="eyebrow-line">Approach</div>
+    <h2>Investigating the <em>root cause</em></h2>
+    <p>Instead of making random changes, I approached the problem methodically.</p>
+    <p>I started by examining:</p>
+    <ul class="cs-list">
+      <li>Theme templates and layout structure</li>
+      <li>WooCommerce page rendering</li>
+      <li>Elementor template hierarchy</li>
+      <li>Plugin interactions</li>
+      <li>Caching layers on the hosting environment</li>
+    </ul>
+    <p>I also used the <strong>SiteGround dashboard tools</strong> to investigate server-side behavior. Through SiteGround, I explored:</p>
+    <ul class="cs-list">
+      <li>Cache management</li>
+      <li>Site tools and server settings</li>
+      <li>Database repair tools</li>
+      <li>Hosting environment diagnostics</li>
+    </ul>
+    <p>These tools helped identify where the issues were originating and allowed me to test fixes safely.</p>
+  </div>
+
+  <div class="cs-divider"></div>
+
+  <div class="reveal">
+    <div class="eyebrow-line">Recovery</div>
+    <h2>Restoring <em>site stability</em></h2>
+    <p>One of the first goals was to stabilize the website environment.</p>
+    <p>To achieve this, I performed several recovery steps:</p>
+    <ul class="cs-list">
+      <li>Identified and resolved plugin conflicts</li>
+      <li>Restored plugins carefully after testing</li>
+      <li>Performed <strong>database repair</strong> through WordPress maintenance tools</li>
+      <li>Cleared and reset server-side cache</li>
+      <li>Regenerated Elementor CSS and data files</li>
+    </ul>
+    <p>These steps helped restore the stability of the website and allowed the Elementor editor to function properly again.</p>
+  </div>
+
+  <div class="cs-divider"></div>
+
+  <div class="reveal">
+    <div class="eyebrow-line">Fix 01</div>
+    <h2>Fixing the <em>Navigation Menu</em></h2>
+    <p>Another major issue appeared in the website navigation.</p>
+    <p>The main menu and sub-menu items were displaying together, which made the navigation confusing and visually broken. The dropdown behavior was not working correctly and alignment was inconsistent.</p>
+    <p>To fix this, I adjusted the menu styling and structure so that:</p>
+    <ul class="cs-list">
+      <li>Sub-menus appear correctly on hover or interaction</li>
+      <li>Menu alignment is restored</li>
+      <li>Dropdown spacing and layout are properly structured</li>
+    </ul>
+    <p>After the fix, the navigation menu behaved as expected and looked visually consistent again.</p>
+  </div>
+</div>
+
+<div class="container" style="max-width:900px">
+  <div class="ba-pair reveal">
+    <div class="ba-card ba-before">
+      <div class="ba-label"><span class="ba-dot"></span>Before — Broken Navigation Menu</div>
+      <div class="ba-img"><img src="nav-before.png" alt="Broken navigation menu showing menu and sub-items appearing together"></div>
+    </div>
+    <div class="ba-card ba-after">
+      <div class="ba-label"><span class="ba-dot"></span>After — Clean and Structured Menu</div>
+      <div class="ba-img"><img src="nav-after.jpg" alt="Fixed navigation menu with correct dropdown behavior"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container cs-body" style="max-width:680px">
+  <div class="cs-divider"></div>
+
+  <div class="reveal">
+    <div class="eyebrow-line">Fix 02</div>
+    <h2>Restoring <em>Header and Footer Styling</em></h2>
+    <p>During the debugging process, I also discovered that the header and footer styling had been overridden by theme styles, causing background colors and layout spacing to break.</p>
+    <p>The footer background that appeared correctly in the editor was not rendering properly on the live site.</p>
+    <p>By inspecting the DOM structure and identifying theme overrides, I restored the correct styling and ensured the header and footer were consistent across all pages.</p>
+  </div>
+</div>
+
+<div class="container" style="max-width:900px">
+  <div class="ba-pair reveal">
+    <div class="ba-card ba-before">
+      <div class="ba-label"><span class="ba-dot"></span>Before — Broken Styling</div>
+      <div class="ba-img"><img src="header-footer-before.jpg" alt="Broken header and footer styling"></div>
+    </div>
+    <div class="ba-card ba-after">
+      <div class="ba-label"><span class="ba-dot"></span>After — Restored Design</div>
+      <div class="ba-img"><img src="header-footer-after.jpg" alt="Restored header and footer design"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container cs-body" style="max-width:680px">
+  <div class="cs-divider"></div>
+
+  <div class="reveal">
+    <div class="eyebrow-line">Fix 03</div>
+    <h2>Rebuilding the <em>Product Page Layout</em></h2>
+    <p>One of the most noticeable issues was the single product page layout.</p>
+    <p>There were spacing problems, alignment issues, and unnecessary columns affecting the overall structure.</p>
+    <p>Instead of trying to patch individual CSS issues, I decided to rebuild the layout properly using <strong>Elementor Theme Builder</strong>.</p>
+    <p>This allowed me to:</p>
+    <ul class="cs-list">
+      <li>Remove problematic layout elements</li>
+      <li>Recreate a clean product page structure</li>
+      <li>Ensure WooCommerce elements rendered correctly</li>
+      <li>Maintain compatibility with the theme and plugins</li>
+    </ul>
+    <p>The rebuilt product page was cleaner, more stable, and easier to maintain.</p>
+  </div>
+</div>
+
+<div class="container" style="max-width:900px">
+  <div class="ba-pair reveal">
+    <div class="ba-card ba-before">
+      <div class="ba-label"><span class="ba-dot"></span>Before — Broken Product Page Layout</div>
+      <div class="ba-img"><img src="product-page-before.jpg" alt="Broken product page with spacing and alignment issues"></div>
+    </div>
+    <div class="ba-card ba-after">
+      <div class="ba-label"><span class="ba-dot"></span>After — Rebuilt Product Page Layout</div>
+      <div class="ba-img"><img src="product-page-after.jpg" alt="Rebuilt clean product page layout"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container cs-body" style="max-width:680px">
+  <div class="cs-divider"></div>
+
+  <div class="reveal">
+    <div class="eyebrow-line">Fix 04</div>
+    <h2>Fixing the <em>WooCommerce Product Slider</em></h2>
+    <p>Another issue appeared on the homepage where the WooCommerce product slider widget was not displaying products correctly.</p>
+    <p>The slider container was visible, but the products inside it were not rendering on the website. Interestingly, the products appeared briefly while the slider was loading and then disappeared.</p>
+    <p>After inspecting the layout structure and CSS behavior, I discovered that the issue was caused by the theme's grid configuration conflicting with the slider layout.</p>
+    <p>To resolve this, I implemented a targeted CSS adjustment that restored the correct grid structure for the slider widget.</p>
+    <p>Once the fix was applied, the product slider began displaying products normally again.</p>
+  </div>
+</div>
+
+<div class="container" style="max-width:900px">
+  <div class="ba-pair reveal">
+    <div class="ba-card ba-before">
+      <div class="ba-label"><span class="ba-dot"></span>Before — Products Not Displaying in Slider</div>
+      <div class="ba-img"><img src="slider-before.jpg" alt="Product slider container visible but products not rendering"></div>
+    </div>
+    <div class="ba-card ba-after">
+      <div class="ba-label"><span class="ba-dot"></span>After — Product Slider Working Correctly</div>
+      <div class="ba-img"><img src="slider-after.jpg" alt="Product slider displaying products correctly"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container cs-body" style="max-width:680px">
+  <div class="cs-divider"></div>
+
+  <div class="reveal">
+    <div class="eyebrow-line">Fix 05</div>
+    <h2>Improving the <em>Cart Page Experience</em></h2>
+    <p>Another area that needed attention was the cart page.</p>
+    <p>The section labeled "You may be interested in…" was misaligned and taking up unnecessary space. The cart totals and checkout information sidebar also looked unbalanced.</p>
+    <p>Instead of only fixing the alignment, I decided to enhance the user experience.</p>
+    <p>The improvements included:</p>
+    <ul class="cs-list">
+      <li>Redesigning the cross-sell product layout</li>
+      <li>Reducing the number of displayed products</li>
+      <li>Adjusting product card size and spacing</li>
+      <li>Improving typography and readability</li>
+      <li>Enhancing the sidebar layout for better balance</li>
+    </ul>
+    <p>These changes made the cart page cleaner and easier for users to navigate.</p>
+  </div>
+</div>
+
+<div class="container" style="max-width:900px">
+  <div class="ba-pair reveal">
+    <div class="ba-card ba-before">
+      <div class="ba-label"><span class="ba-dot"></span>Before — Misaligned Cart Layout</div>
+      <div class="ba-img"><img src="cart-before.jpg" alt="Misaligned cart page with broken cross-sell section"></div>
+    </div>
+    <div class="ba-card ba-after">
+      <div class="ba-label"><span class="ba-dot"></span>After — Improved Cart User Interface</div>
+      <div class="ba-img"><img src="cart-after.jpg" alt="Improved cart page with clean cross-sell and sidebar layout"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container cs-body" style="max-width:680px">
+  <div class="cs-divider"></div>
+
+  <div class="reveal">
+    <div class="eyebrow-line">Fix 06</div>
+    <h2>Enhancing <em>Product Card Design</em></h2>
+    <p>While reviewing the store pages, I noticed that product cards had an unnecessary grey background that made the layout feel heavy.</p>
+    <p>The individual product pages had a cleaner design, so I adjusted the product card styling to match that visual style.</p>
+    <p>By removing the grey container styling and refining the product card appearance, the store achieved a more modern and consistent look.</p>
+  </div>
+</div>
+
+<div class="container" style="max-width:900px">
+  <div class="ba-pair reveal">
+    <div class="ba-card ba-before">
+      <div class="ba-label"><span class="ba-dot"></span>Before — Grey Product Card Background</div>
+      <div class="ba-img"><img src="product-cards-before.jpg" alt="Product cards with heavy grey background"></div>
+    </div>
+    <div class="ba-card ba-after">
+      <div class="ba-label"><span class="ba-dot"></span>After — Clean Product Card Layout</div>
+      <div class="ba-img"><img src="product-cards-after.jpg" alt="Clean product cards with modern styling"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container cs-body" style="max-width:680px">
+  <div class="cs-divider"></div>
+
+  <div class="reveal">
+    <div class="eyebrow-line">Fix 07</div>
+    <h2>Fixing <em>Website Responsiveness</em></h2>
+    <p>While testing the website after the initial fixes, I noticed that the site was not responding correctly on smaller screens, especially on mobile devices.</p>
+    <p>Certain sections were overflowing beyond the screen width, and some layouts were not adjusting properly for tablet and mobile views.</p>
+    <p>To address this, I carefully reviewed the layout containers and responsive settings. By refining the CSS structure and adjusting layout behaviors for smaller screen sizes, I was able to ensure that the website displayed correctly across different devices.</p>
+    <p>After these adjustments, the website became fully responsive and provided a consistent user experience across desktop, tablet, and mobile screens.</p>
+  </div>
+</div>
+
+<div class="container" style="max-width:900px">
+  <div class="ba-pair reveal">
+    <div class="ba-card ba-before">
+      <div class="ba-label"><span class="ba-dot"></span>Before — Layout Breaking on Mobile</div>
+      <div class="ba-img"><img src="mobile-before.jpg" alt="Website layout breaking on mobile screens"></div>
+    </div>
+    <div class="ba-card ba-after">
+      <div class="ba-label"><span class="ba-dot"></span>After — Fully Responsive Layout</div>
+      <div class="ba-img"><img src="mobile-after.jpg" alt="Fully responsive website on mobile"></div>
+    </div>
+  </div>
+</div>
+
+<div class="container cs-body" style="max-width:680px;padding-bottom:100px">
+  <div class="cs-divider"></div>
+
+  <div class="reveal">
+    <div class="eyebrow-line">Tools Used</div>
+    <h2>The toolkit behind <em>the fix</em></h2>
+    <p>During the debugging and rebuilding process, I used several tools:</p>
+    <div class="tools-wrap">
+      <span class="tool-chip">🔷 WordPress</span>
+      <span class="tool-chip">🛍️ WooCommerce</span>
+      <span class="tool-chip">⚡ Elementor Theme Builder</span>
+      <span class="tool-chip">🎨 Custom CSS</span>
+      <span class="tool-chip">🔍 Browser Developer Tools</span>
+      <span class="tool-chip">☁️ SiteGround Dashboard</span>
+    </div>
+    <p style="margin-top:20px">These tools helped diagnose layout issues, recover the website environment, and rebuild unstable sections of the site.</p>
+  </div>
+
+  <div class="cs-divider"></div>
+
+  <div class="reveal">
+    <div class="eyebrow-line">Key Results</div>
+    <h2>Not just restored — <em>improved</em></h2>
+    <p>After completing the fixes and improvements, the website achieved several important outcomes:</p>
+    <div class="results-grid">
+      <div class="result-item"><span class="result-check">✔</span><span class="result-text">Elementor editor stabilized</span></div>
+      <div class="result-item"><span class="result-check">✔</span><span class="result-text">Plugins successfully recovered and restored</span></div>
+      <div class="result-item"><span class="result-check">✔</span><span class="result-text">Navigation menu functioning correctly</span></div>
+      <div class="result-item"><span class="result-check">✔</span><span class="result-text">Header and footer styling restored</span></div>
+      <div class="result-item"><span class="result-check">✔</span><span class="result-text">Product page layout rebuilt</span></div>
+      <div class="result-item"><span class="result-check">✔</span><span class="result-text">WooCommerce product slider restored</span></div>
+      <div class="result-item"><span class="result-check">✔</span><span class="result-text">Cart page layout corrected and improved</span></div>
+      <div class="result-item"><span class="result-check">✔</span><span class="result-text">Cross-sell product display enhanced</span></div>
+      <div class="result-item"><span class="result-check">✔</span><span class="result-text">Product card design refined</span></div>
+      <div class="result-item"><span class="result-check">✔</span><span class="result-text">Website responsiveness fixed across devices</span></div>
+      <div class="result-item"><span class="result-check">✔</span><span class="result-text">Overall site stability significantly improved</span></div>
+    </div>
+    <p style="margin-top:24px">The result was not just a restored website, but a <strong>cleaner, more stable, and more user-friendly online store</strong>.</p>
+  </div>
+
+  <div class="cs-divider"></div>
+
+  <div class="reveal">
+    <div class="eyebrow-line">What I Learned</div>
+    <h2>Lessons from <em>debugging under pressure</em></h2>
+    <p>This experience reinforced several important lessons.</p>
+    <p>First, many website issues are not caused by a single problem. They are often the result of multiple systems interacting — themes, plugins, caching layers, and page builders. Understanding how these pieces work together is essential when diagnosing real-world problems.</p>
+    <p>Second, debugging requires patience and a structured approach. Investigating problems step by step and testing small changes helps prevent unnecessary changes that could make things worse.</p>
+    <p>Another important lesson I learned is that when multiple issues appear at once, it can feel overwhelming and difficult to know where to start. During this process there were moments when I felt stressed because there were so many things to fix.</p>
+
+    <div class="callout">
+      <p>What helped me move forward was <strong>focusing on the small progress I was making</strong>. Each small fix — restoring a layout, stabilizing the editor, correcting an alignment issue — gave me confidence to continue. Instead of panicking when something went wrong, I reminded myself that I had already solved several problems along the way. If I could figure those out, I could figure out the next one too.</p>
     </div>
 
-    <!-- COVER IMAGE -->
-    <div class="bleed cover-wrap reveal">
-      <div class="cover-img">
-        <img src="hero.jpg" alt="The Telecom Warehouse WooCommerce store after recovery" />
-      </div>
+    <p>Sometimes progress in debugging comes from solving one small problem at a time.</p>
+  </div>
+
+  <div class="cs-divider"></div>
+
+  <div class="reveal">
+    <div class="eyebrow-line">Final Thoughts</div>
+    <h2><em>What this taught me</em> about web development</h2>
+    <p>What began as a small layout issue turned into a deeper debugging and stabilization process.</p>
+    <p>By carefully investigating the problems and rebuilding key parts of the site, I was able to restore the store and improve its user interface along the way.</p>
+    <p>Working through this experience reminded me that growth in web development does not come only from building websites, but also from learning how to fix them when things go wrong.</p>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-dark reveal">
+    <div class="eyebrow-line">✦ Got a broken store?</div>
+    <h2>I can help you fix it — <em>fast.</em></h2>
+    <p>Whether it's a crashed WooCommerce store, a broken layout, or just something that feels off — let's figure it out.</p>
+    <div class="hero-cta">
+      <a href="../index.html#contact" class="btn btn-light">Work with me →</a>
+      <a href="../index.html#work" class="btn btn-line">← Back to all work</a>
     </div>
+  </div>
+</div>
 
-    <!-- BODY -->
-    <div class="col">
+<footer class="footer">
+  <div class="container">© 2026 Aneena James · Website &amp; Digital Marketing Specialist · Trivandrum, Kerala</div>
+</footer>
 
-      <!-- OVERVIEW -->
-      <div class="cs-section reveal">
-        <p class="cs-p">Recently, I worked on a WooCommerce store that suddenly started behaving unpredictably after a theme update. The site had multiple layout and functionality issues across different pages.</p>
-        <p class="cs-p">Instead of applying quick temporary fixes, I decided to understand the root cause and stabilize the website properly. What followed became a valuable learning experience in debugging, problem solving, and improving an existing eCommerce website.</p>
-      </div>
-
-      <div class="divider"></div>
-
-      <!-- THE SITUATION -->
-      <div class="cs-section reveal">
-        <div class="eyebrow">THE SITUATION</div>
-        <h2 class="cs-h2">A routine update that <em>broke everything at once</em></h2>
-        <p class="cs-p">The website was built with <strong>WordPress, WooCommerce, and Elementor</strong>, and hosted on <strong>SiteGround</strong>. After the update, several parts of the website started behaving incorrectly.</p>
-        <p class="cs-p">Some of the issues included:</p>
-        <ul class="cs-list">
-          <li>The Elementor editor getting stuck while loading</li>
-          <li>Navigation menu items and sub-items appearing together incorrectly</li>
-          <li>Header and footer styling breaking</li>
-          <li>Product page layout misalignment</li>
-          <li>Cart page sidebar and cross-sell section appearing incorrectly</li>
-          <li>CSS changes failing to apply properly</li>
-          <li>General layout inconsistencies across the store</li>
-        </ul>
-        <p class="cs-p">While diagnosing plugin conflicts by temporarily disabling plugins, the site even crashed briefly. Fortunately, I was able to recover it quickly and continue the debugging process.</p>
-        <p class="cs-p">This situation made it clear that the problem was not a single issue — it was a combination of layout conflicts, caching problems, and plugin interactions.</p>
-      </div>
-
-      <div class="divider"></div>
-
-      <!-- INVESTIGATING ROOT CAUSE -->
-      <div class="cs-section reveal">
-        <div class="eyebrow">APPROACH</div>
-        <h2 class="cs-h2">Investigating the <em>root cause</em></h2>
-        <p class="cs-p">Instead of making random changes, I approached the problem methodically.</p>
-        <p class="cs-p">I started by examining:</p>
-        <ul class="cs-list">
-          <li>Theme templates and layout structure</li>
-          <li>WooCommerce page rendering</li>
-          <li>Elementor template hierarchy</li>
-          <li>Plugin interactions</li>
-          <li>Caching layers on the hosting environment</li>
-        </ul>
-        <p class="cs-p">I also used the <strong>SiteGround dashboard tools</strong> to investigate server-side behavior. Through SiteGround, I explored:</p>
-        <ul class="cs-list">
-          <li>Cache management</li>
-          <li>Site tools and server settings</li>
-          <li>Database repair tools</li>
-          <li>Hosting environment diagnostics</li>
-        </ul>
-        <p class="cs-p">These tools helped identify where the issues were originating and allowed me to test fixes safely.</p>
-      </div>
-
-      <div class="divider"></div>
-
-      <!-- RESTORING STABILITY -->
-      <div class="cs-section reveal">
-        <div class="eyebrow">RECOVERY</div>
-        <h2 class="cs-h2">Restoring <em>site stability</em></h2>
-        <p class="cs-p">One of the first goals was to stabilize the website environment.</p>
-        <p class="cs-p">To achieve this, I performed several recovery steps:</p>
-        <ul class="cs-list">
-          <li>Identified and resolved plugin conflicts</li>
-          <li>Restored plugins carefully after testing</li>
-          <li>Performed <strong>database repair</strong> through WordPress maintenance tools</li>
-          <li>Cleared and reset server-side cache</li>
-          <li>Regenerated Elementor CSS and data files</li>
-        </ul>
-        <p class="cs-p">These steps helped restore the stability of the website and allowed the Elementor editor to function properly again.</p>
-      </div>
-
-      <div class="divider"></div>
-
-      <!-- FIX 1: NAVIGATION -->
-      <div class="cs-section reveal">
-        <div class="eyebrow">FIX 01</div>
-        <h2 class="cs-h2">Fixing the <em>Navigation Menu</em></h2>
-        <p class="cs-p">Another major issue appeared in the website navigation.</p>
-        <p class="cs-p">The main menu and sub-menu items were displaying together, which made the navigation confusing and visually broken. The dropdown behavior was not working correctly and alignment was inconsistent.</p>
-        <p class="cs-p">To fix this, I adjusted the menu styling and structure so that:</p>
-        <ul class="cs-list">
-          <li>Sub-menus appear correctly on hover or interaction</li>
-          <li>Menu alignment is restored</li>
-          <li>Dropdown spacing and layout are properly structured</li>
-        </ul>
-        <p class="cs-p">After the fix, the navigation menu behaved as expected and looked visually consistent again.</p>
-      </div>
-
-    </div><!-- /col -->
-
-    <!-- BEFORE / AFTER: NAVIGATION — full bleed -->
-    <div class="bleed reveal">
-      <div class="ba-pair">
-        <div class="ba-card ba-before">
-          <div class="ba-label"><span class="ba-dot"></span>BEFORE — Broken Navigation Menu</div>
-          <div class="ba-img"><img src="nav-before.png" alt="Broken navigation menu showing menu and sub-items appearing together" /></div>
-        </div>
-        <div class="ba-card ba-after">
-          <div class="ba-label"><span class="ba-dot"></span>AFTER — Clean and Structured Menu</div>
-          <div class="ba-img"><img src="nav-after.jpg" alt="Fixed navigation menu with correct dropdown behavior" /></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="col">
-      <div class="divider"></div>
-
-      <!-- FIX 2: HEADER & FOOTER -->
-      <div class="cs-section reveal">
-        <div class="eyebrow">FIX 02</div>
-        <h2 class="cs-h2">Restoring <em>Header and Footer Styling</em></h2>
-        <p class="cs-p">During the debugging process, I also discovered that the header and footer styling had been overridden by theme styles, causing background colors and layout spacing to break.</p>
-        <p class="cs-p">The footer background that appeared correctly in the editor was not rendering properly on the live site.</p>
-        <p class="cs-p">By inspecting the DOM structure and identifying theme overrides, I restored the correct styling and ensured the header and footer were consistent across all pages.</p>
-      </div>
-
-    </div>
-
-    <div class="bleed reveal">
-      <div class="ba-pair">
-        <div class="ba-card ba-before">
-          <div class="ba-label"><span class="ba-dot"></span>BEFORE — Broken Styling</div>
-          <div class="ba-img"><img src="header-footer-before.jpg" alt="Broken header and footer styling" /></div>
-        </div>
-        <div class="ba-card ba-after">
-          <div class="ba-label"><span class="ba-dot"></span>AFTER — Restored Design</div>
-          <div class="ba-img"><img src="header-footer-after.jpg" alt="Restored header and footer design" /></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="col">
-      <div class="divider"></div>
-
-      <!-- FIX 3: PRODUCT PAGE -->
-      <div class="cs-section reveal">
-        <div class="eyebrow">FIX 03</div>
-        <h2 class="cs-h2">Rebuilding the <em>Product Page Layout</em></h2>
-        <p class="cs-p">One of the most noticeable issues was the single product page layout.</p>
-        <p class="cs-p">There were spacing problems, alignment issues, and unnecessary columns affecting the overall structure.</p>
-        <p class="cs-p">Instead of trying to patch individual CSS issues, I decided to rebuild the layout properly using <strong>Elementor Theme Builder</strong>.</p>
-        <p class="cs-p">This allowed me to:</p>
-        <ul class="cs-list">
-          <li>Remove problematic layout elements</li>
-          <li>Recreate a clean product page structure</li>
-          <li>Ensure WooCommerce elements rendered correctly</li>
-          <li>Maintain compatibility with the theme and plugins</li>
-        </ul>
-        <p class="cs-p">The rebuilt product page was cleaner, more stable, and easier to maintain.</p>
-      </div>
-
-    </div>
-
-    <div class="bleed reveal">
-      <div class="ba-pair">
-        <div class="ba-card ba-before">
-          <div class="ba-label"><span class="ba-dot"></span>BEFORE — Broken Product Page Layout</div>
-          <div class="ba-img"><img src="product-page-before.jpg" alt="Broken product page with spacing and alignment issues" /></div>
-        </div>
-        <div class="ba-card ba-after">
-          <div class="ba-label"><span class="ba-dot"></span>AFTER — Rebuilt Product Page Layout</div>
-          <div class="ba-img"><img src="product-page-after.jpg" alt="Rebuilt clean product page layout" /></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="col">
-      <div class="divider"></div>
-
-      <!-- FIX 4: PRODUCT SLIDER -->
-      <div class="cs-section reveal">
-        <div class="eyebrow">FIX 04</div>
-        <h2 class="cs-h2">Fixing the <em>WooCommerce Product Slider</em></h2>
-        <p class="cs-p">Another issue appeared on the homepage where the WooCommerce product slider widget was not displaying products correctly.</p>
-        <p class="cs-p">The slider container was visible, but the products inside it were not rendering on the website. Interestingly, the products appeared briefly while the slider was loading and then disappeared.</p>
-        <p class="cs-p">After inspecting the layout structure and CSS behavior, I discovered that the issue was caused by the theme's grid configuration conflicting with the slider layout.</p>
-        <p class="cs-p">To resolve this, I implemented a targeted CSS adjustment that restored the correct grid structure for the slider widget.</p>
-        <p class="cs-p">Once the fix was applied, the product slider began displaying products normally again.</p>
-      </div>
-
-    </div>
-
-    <div class="bleed reveal">
-      <div class="ba-pair">
-        <div class="ba-card ba-before">
-          <div class="ba-label"><span class="ba-dot"></span>BEFORE — Products Not Displaying in Slider</div>
-          <div class="ba-img"><img src="slider-before.jpg" alt="Product slider container visible but products not rendering" /></div>
-        </div>
-        <div class="ba-card ba-after">
-          <div class="ba-label"><span class="ba-dot"></span>AFTER — Product Slider Working Correctly</div>
-          <div class="ba-img"><img src="slider-after.jpg" alt="Product slider displaying products correctly" /></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="col">
-      <div class="divider"></div>
-
-      <!-- FIX 5: CART PAGE -->
-      <div class="cs-section reveal">
-        <div class="eyebrow">FIX 05</div>
-        <h2 class="cs-h2">Improving the <em>Cart Page Experience</em></h2>
-        <p class="cs-p">Another area that needed attention was the cart page.</p>
-        <p class="cs-p">The section labeled "You may be interested in…" was misaligned and taking up unnecessary space. The cart totals and checkout information sidebar also looked unbalanced.</p>
-        <p class="cs-p">Instead of only fixing the alignment, I decided to enhance the user experience.</p>
-        <p class="cs-p">The improvements included:</p>
-        <ul class="cs-list">
-          <li>Redesigning the cross-sell product layout</li>
-          <li>Reducing the number of displayed products</li>
-          <li>Adjusting product card size and spacing</li>
-          <li>Improving typography and readability</li>
-          <li>Enhancing the sidebar layout for better balance</li>
-        </ul>
-        <p class="cs-p">These changes made the cart page cleaner and easier for users to navigate.</p>
-      </div>
-
-    </div>
-
-    <div class="bleed reveal">
-      <div class="ba-pair">
-        <div class="ba-card ba-before">
-          <div class="ba-label"><span class="ba-dot"></span>BEFORE — Misaligned Cart Layout</div>
-          <div class="ba-img"><img src="cart-before.jpg" alt="Misaligned cart page with broken cross-sell section" /></div>
-        </div>
-        <div class="ba-card ba-after">
-          <div class="ba-label"><span class="ba-dot"></span>AFTER — Improved Cart User Interface</div>
-          <div class="ba-img"><img src="cart-after.jpg" alt="Improved cart page with clean cross-sell and sidebar layout" /></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="col">
-      <div class="divider"></div>
-
-      <!-- FIX 6: PRODUCT CARDS -->
-      <div class="cs-section reveal">
-        <div class="eyebrow">FIX 06</div>
-        <h2 class="cs-h2">Enhancing <em>Product Card Design</em></h2>
-        <p class="cs-p">While reviewing the store pages, I noticed that product cards had an unnecessary grey background that made the layout feel heavy.</p>
-        <p class="cs-p">The individual product pages had a cleaner design, so I adjusted the product card styling to match that visual style.</p>
-        <p class="cs-p">By removing the grey container styling and refining the product card appearance, the store achieved a more modern and consistent look.</p>
-      </div>
-
-    </div>
-
-    <div class="bleed reveal">
-      <div class="ba-pair">
-        <div class="ba-card ba-before">
-          <div class="ba-label"><span class="ba-dot"></span>BEFORE — Grey Product Card Background</div>
-          <div class="ba-img"><img src="product-cards-before.jpg" alt="Product cards with heavy grey background" /></div>
-        </div>
-        <div class="ba-card ba-after">
-          <div class="ba-label"><span class="ba-dot"></span>AFTER — Clean Product Card Layout</div>
-          <div class="ba-img"><img src="product-cards-after.jpg" alt="Clean product cards with modern styling" /></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="col">
-      <div class="divider"></div>
-
-      <!-- FIX 7: RESPONSIVENESS -->
-      <div class="cs-section reveal">
-        <div class="eyebrow">FIX 07</div>
-        <h2 class="cs-h2">Fixing <em>Website Responsiveness</em></h2>
-        <p class="cs-p">While testing the website after the initial fixes, I noticed that the site was not responding correctly on smaller screens, especially on mobile devices.</p>
-        <p class="cs-p">Certain sections were overflowing beyond the screen width, and some layouts were not adjusting properly for tablet and mobile views.</p>
-        <p class="cs-p">To address this, I carefully reviewed the layout containers and responsive settings. By refining the CSS structure and adjusting layout behaviors for smaller screen sizes, I was able to ensure that the website displayed correctly across different devices.</p>
-        <p class="cs-p">After these adjustments, the website became fully responsive and provided a consistent user experience across desktop, tablet, and mobile screens.</p>
-      </div>
-
-    </div>
-
-    <div class="bleed reveal">
-      <div class="ba-pair">
-        <div class="ba-card ba-before">
-          <div class="ba-label"><span class="ba-dot"></span>BEFORE — Layout Breaking on Mobile</div>
-          <div class="ba-img"><img src="mobile-before.jpg" alt="Website layout breaking on mobile screens" /></div>
-        </div>
-        <div class="ba-card ba-after">
-          <div class="ba-label"><span class="ba-dot"></span>AFTER — Fully Responsive Layout</div>
-          <div class="ba-img"><img src="mobile-after.jpg" alt="Fully responsive website on mobile" /></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="col">
-      <div class="divider"></div>
-
-      <!-- TOOLS -->
-      <div class="cs-section reveal">
-        <div class="eyebrow">TOOLS USED</div>
-        <h2 class="cs-h2">The toolkit behind <em>the fix</em></h2>
-        <p class="cs-p">During the debugging and rebuilding process, I used several tools:</p>
-        <div class="tools-wrap">
-          <span class="tool">🔷 WordPress</span>
-          <span class="tool">🛍️ WooCommerce</span>
-          <span class="tool">⚡ Elementor Theme Builder</span>
-          <span class="tool">🎨 Custom CSS</span>
-          <span class="tool">🔍 Browser Developer Tools</span>
-          <span class="tool">☁️ SiteGround Dashboard</span>
-        </div>
-        <p class="cs-p" style="margin-top:20px;">These tools helped diagnose layout issues, recover the website environment, and rebuild unstable sections of the site.</p>
-      </div>
-
-      <div class="divider"></div>
-
-      <!-- KEY RESULTS -->
-      <div class="cs-section reveal">
-        <div class="eyebrow">KEY RESULTS</div>
-        <h2 class="cs-h2">Not just restored — <em>improved</em></h2>
-        <p class="cs-p">After completing the fixes and improvements, the website achieved several important outcomes:</p>
-        <div class="results-grid">
-          <div class="result"><span class="result-check">✔</span><span class="result-text">Elementor editor stabilized</span></div>
-          <div class="result"><span class="result-check">✔</span><span class="result-text">Plugins successfully recovered and restored</span></div>
-          <div class="result"><span class="result-check">✔</span><span class="result-text">Navigation menu functioning correctly</span></div>
-          <div class="result"><span class="result-check">✔</span><span class="result-text">Header and footer styling restored</span></div>
-          <div class="result"><span class="result-check">✔</span><span class="result-text">Product page layout rebuilt</span></div>
-          <div class="result"><span class="result-check">✔</span><span class="result-text">WooCommerce product slider restored</span></div>
-          <div class="result"><span class="result-check">✔</span><span class="result-text">Cart page layout corrected and improved</span></div>
-          <div class="result"><span class="result-check">✔</span><span class="result-text">Cross-sell product display enhanced</span></div>
-          <div class="result"><span class="result-check">✔</span><span class="result-text">Product card design refined</span></div>
-          <div class="result"><span class="result-check">✔</span><span class="result-text">Website responsiveness fixed across devices</span></div>
-          <div class="result"><span class="result-check">✔</span><span class="result-text">Overall site stability significantly improved</span></div>
-        </div>
-        <p class="cs-p" style="margin-top:24px;">The result was not just a restored website, but a <strong>cleaner, more stable, and more user-friendly online store</strong>.</p>
-      </div>
-
-      <div class="divider"></div>
-
-      <!-- WHAT I LEARNED -->
-      <div class="cs-section reveal">
-        <div class="eyebrow">WHAT I LEARNED</div>
-        <h2 class="cs-h2">Lessons from <em>debugging under pressure</em></h2>
-        <p class="cs-p">This experience reinforced several important lessons.</p>
-        <p class="cs-p">First, many website issues are not caused by a single problem. They are often the result of multiple systems interacting — themes, plugins, caching layers, and page builders. Understanding how these pieces work together is essential when diagnosing real-world problems.</p>
-        <p class="cs-p">Second, debugging requires patience and a structured approach. Investigating problems step by step and testing small changes helps prevent unnecessary changes that could make things worse.</p>
-        <p class="cs-p">Another important lesson I learned is that when multiple issues appear at once, it can feel overwhelming and difficult to know where to start. During this process there were moments when I felt stressed because there were so many things to fix.</p>
-
-        <div class="callout">
-          <p>What helped me move forward was <strong>focusing on the small progress I was making</strong>. Each small fix — restoring a layout, stabilizing the editor, correcting an alignment issue — gave me confidence to continue. Instead of panicking when something went wrong, I reminded myself that I had already solved several problems along the way. If I could figure those out, I could figure out the next one too.</p>
-        </div>
-
-        <p class="cs-p">Sometimes progress in debugging comes from solving one small problem at a time.</p>
-      </div>
-
-      <div class="divider"></div>
-
-      <!-- FINAL THOUGHTS -->
-      <div class="cs-section reveal">
-        <div class="eyebrow">FINAL THOUGHTS</div>
-        <h2 class="cs-h2"><em>What this taught me</em> about web development</h2>
-        <p class="cs-p">What began as a small layout issue turned into a deeper debugging and stabilization process.</p>
-        <p class="cs-p">By carefully investigating the problems and rebuilding key parts of the site, I was able to restore the store and improve its user interface along the way.</p>
-        <p class="cs-p">Working through this experience reminded me that growth in web development does not come only from building websites, but also from learning how to fix them when things go wrong.</p>
-      </div>
-
-      <!-- CTA -->
-      <div class="cta-block reveal">
-        <div class="cta-deco cta-deco-tl">✦</div>
-        <div class="cta-deco cta-deco-br">✦</div>
-        <div class="cta-eyebrow">✦ GOT A BROKEN STORE?</div>
-        <h2 class="cta-h2">I can help you fix it — <em>fast.</em></h2>
-        <p class="cta-sub">Whether it's a crashed WooCommerce store, a broken layout, or just something that feels off — let's figure it out.</p>
-        <div class="cta-btns">
-          <a href="https://aneena-james.github.io/#contact" class="btn-primary">Work with me →</a>
-          <a href="https://aneena-james.github.io/#work" class="btn-ghost">← Back to all work</a>
-        </div>
-      </div>
-
-    </div><!-- /col -->
-  </div><!-- /page-wrap -->
-
-  <!-- FOOTER -->
-  <footer class="footer">
-    <span>© 2025 Aneena James</span>
-    <div class="footer-links">
-      <a href="mailto:aneenajames.work@gmail.com">Email</a>
-      <a href="#" target="_blank" rel="noopener">LinkedIn</a>
-      <a href="#" target="_blank" rel="noopener">Instagram</a>
-    </div>
-  </footer>
-
-  <script>
-    // CURSOR
-    const cur=document.querySelector('.cursor'),ring=document.querySelector('.cursor-ring');
-    if(cur&&ring){
-      let mx=0,my=0,rx=0,ry=0;
-      document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.transform=`translate(${mx-5.5}px,${my-5.5}px)`;});
-      (function t(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.transform=`translate(${rx-17}px,${ry-17}px)`;requestAnimationFrame(t);})();
-    }
-
-    // NAV SCROLL
-    const nav=document.querySelector('.nav');
-    window.addEventListener('scroll',()=>nav.classList.toggle('scrolled',scrollY>20),{passive:true});
-
-    // MOBILE BURGER
-    const burger=document.querySelector('.nav-burger'),mob=document.querySelector('.nav-mobile');
-    if(burger&&mob){
-      burger.addEventListener('click',()=>{burger.classList.toggle('open');mob.classList.toggle('open');});
-      mob.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{burger.classList.remove('open');mob.classList.remove('open');}));
-    }
-
-    // SCROLL REVEAL
-    const obs=new IntersectionObserver(entries=>{
-      entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');obs.unobserve(e.target);}});
-    },{threshold:.08,rootMargin:'0px 0px -40px 0px'});
-    document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
-  </script>
-
+<script>
+const burger = document.getElementById('burger');
+const navLinks = document.getElementById('navLinks');
+if (burger) {
+  burger.addEventListener('click', () => { burger.classList.toggle('open'); navLinks.classList.toggle('open'); });
+}
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); } });
+}, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
 </body>
 </html>
